@@ -42,3 +42,4 @@ milestone*_summary.md
 edge_case_tester.py
 e2e_test.py
 test_api.py
+migrate_to_atlas.py
