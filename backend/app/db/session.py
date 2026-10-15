@@ -11,19 +11,32 @@ is_mock = False
 
 def init_mongo():
     global mongo_client, active_db, is_mock
-    try:
-        client = pymongo.MongoClient(settings.MONGO_URI, serverSelectionTimeoutMS=2000)
-        client.admin.command('ping')
-        mongo_client = client
-        active_db = mongo_client[settings.MONGO_DB_NAME]
-        is_mock = False
-        ensure_indexes(active_db)
-    except Exception:
-        import mongomock
-        mongo_client = mongomock.MongoClient()
-        active_db = mongo_client[settings.MONGO_DB_NAME]
-        is_mock = True
-        ensure_indexes(active_db)
+    if settings.MONGO_URI:
+        try:
+            client = pymongo.MongoClient(settings.MONGO_URI, serverSelectionTimeoutMS=5000)
+            client.admin.command('ping')
+            mongo_client = client
+            active_db = mongo_client[settings.MONGO_DB_NAME]
+            is_mock = False
+            ensure_indexes(active_db)
+            try:
+                from app.core.logger import logger
+                logger.info(f"Connected to MongoDB database '{settings.MONGO_DB_NAME}' successfully.")
+            except Exception:
+                pass
+            return active_db
+        except Exception as e:
+            try:
+                from app.core.logger import logger
+                logger.warning(f"Could not connect to MongoDB at '{settings.MONGO_URI}': {e}. Falling back to mongomock.")
+            except Exception:
+                pass
+
+    import mongomock
+    mongo_client = mongomock.MongoClient()
+    active_db = mongo_client[settings.MONGO_DB_NAME]
+    is_mock = True
+    ensure_indexes(active_db)
     return active_db
 
 def ensure_indexes(db):

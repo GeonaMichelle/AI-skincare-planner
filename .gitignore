@@ -39,7 +39,8 @@ docker-compose.override.yml
 # Temporary generation & milestone scripts
 implement_*.py
 milestone*_summary.md
-edge_case_tester.py
-e2e_test.py
-test_api.py
-migrate_to_atlas.py
+/edge_case_tester.py
+/e2e_test.py
+/test_api.py
+/migrate_to_atlas.py
+AI skincare planner/

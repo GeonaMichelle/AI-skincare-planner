@@ -56,11 +56,27 @@ app.include_router(api_router, prefix=settings.API_V1_STR)
 
 @app.get("/api/health", tags=["Health"])
 def health_check():
+    from app.db.session import active_db, is_mock, init_mongo
+    db_status = "connected"
+    database_mode = "mongodb"
+    try:
+        db = active_db if active_db is not None else init_mongo()
+        if is_mock:
+            database_mode = "mongomock"
+        else:
+            db.command("ping")
+    except Exception as e:
+        db_status = f"unhealthy: {e}"
+
     return {
-        "status": "healthy",
+        "status": "healthy" if db_status == "connected" else "degraded",
         "service": settings.PROJECT_NAME,
         "version": settings.VERSION,
-        "api_prefix": settings.API_V1_STR
+        "api_prefix": settings.API_V1_STR,
+        "database": {
+            "status": db_status,
+            "mode": database_mode
+        }
     }
 
 frontend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend"))
